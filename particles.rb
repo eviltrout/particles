@@ -17,21 +17,23 @@ module ZOrder
 end
 
 class Particle 
-  def initialize(sprite, x, y, ang, speed)
+  def initialize(sprite, x, y, ang, speed, decay)
     @x = x
     @y = y
-    @d_x = offset_x(ang, speed)
-    @d_y = offset_y(ang, speed)
-    @angle = ang
+    @angle =  90-ang
+    @speed = speed
+    @d_x = offset_x(@angle, @speed)
+    @d_y = offset_y(@angle, @speed)
     @life = 1
     @sprite = sprite
+    @decay = decay
   end
   
   def update
     @x = @x + @d_x
     @y = @y + @d_y
-    @life = @life - 0.01
-    @angle += 1
+    @life = @life - @decay
+    @angle += (@speed / 3)
   end
   
   def color
@@ -78,19 +80,21 @@ class Particles
   end
   
   def create(x, y, angle, speed)
-    @particles << Particle.new(@fuzzy, x, y, angle, speed)
+    @particles << Particle.new(@fuzzy, x, y, angle, speed, 0.002)
   end
   
 end
 
 class Emitter
   
-  def initialize(particles)
+  def initialize(particles, x, y)
     @particles = particles
+    @x = x
+    @y = y
   end
   
   def spawn
-    @particles.create(Dimensions::Width / 2, Dimensions::Height / 3, (rand * 360), (rand * 5))
+    @particles.create(@x, rand * Dimensions::Height, (rand * 30) + 165, (rand * 10))
   end
   def update(milliseconds)
     spawn if (rand < 0.1) 
@@ -106,7 +110,7 @@ class GameWindow < Gosu::Window
     
     @background_image = Gosu::Image.new(self, "images/background.png", true)
     @particles = Particles.new(self)
-    @emitter = Emitter.new(@particles)
+    @emitter = Emitter.new(@particles, 1400, 400)
     
   end
 
